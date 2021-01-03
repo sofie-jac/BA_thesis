@@ -50,17 +50,17 @@ cor.test(residuals(m_h1), data_sias$SIAS, method = "pearson", na.rm = T)
 
 ######################################## Ancova assumptions
 ############# testing ANCOVA for RT
-data_cwt_agregated$Cue_congruency <- data_cwt_agregated$Cue_congruency
+data_cwt_agregated$Trial_type <- data_cwt_agregated$Trial_type
 
 ### Test results were the same without the covarriate
-m_acc_cwt <- aov_car(Accuracy ~ Cue_congruency * Valence + Error(record_id/Cue_congruency*Valence), data=data_cwt_agregated)
+m_acc_cwt <- aov_car(Accuracy ~ Trial_type * Valence + Error(record_id/Trial_type*Valence), data=data_cwt_agregated)
 summary(m_acc_cwt)
 get_anova_table(m_acc_cwt, correction = c("auto", "GG", "HF", "none"))
 
 #Linearity - seems linear
 ggscatter(
   data_cwt_agregated, x = "SIAS_center", y = "Reaction_Time",
-  facet.by  = c("Cue_congruency", "Valence"), 
+  facet.by  = c("Trial_type", "Valence"), 
   short.panel.labs = FALSE) +
   stat_smooth(method = "loess", span = 0.9, color = '#A6CFE3')+
   ylab("Reaction time")+
@@ -71,12 +71,12 @@ ggscatter(
 #homogenity of regession slopes - assumption is not violated
 ggscatter(
   data_cwt_agregated, x = "SIAS_center", y = "Reaction_Time",
-  color = "Cue_congruency", add = "reg.line",
+  color = "Trial_type", add = "reg.line",
   xlab = "SIAS (centered)", ylab = "Reaction time") +
   theme_minimal(base_size = 14, base_family = "Times New Roman") +
-  scale_color_brewer(palette="Blues")+
+  scale_color_brewer(palette="Blues", direction = -1)+
   stat_regline_equation(
-    aes(label =  paste(..eq.label.., ..rr.label.., sep = "~~~~"), color = "Cue_congruency")
+    aes(label =  paste(..eq.label.., ..rr.label.., sep = "~~~~"), color = "Trial_type")
   )
 ggscatter(
   data_cwt_agregated, x = "SIAS_center", y = "Reaction_Time",
@@ -90,7 +90,7 @@ ggscatter(
 
 #identifying outliers - only 12 extreme
 outliers_rt <- data_cwt_agregated %>%
-  group_by(Cue_congruency, Valence, SIAS) %>%
+  group_by(Trial_type, Valence, SIAS) %>%
   identify_outliers(Reaction_Time)
 sum(outliers_rt$is.extreme)
 
@@ -98,32 +98,32 @@ sum(outliers_rt$is.extreme)
 Q <- quantile(data_cwt_agregated$Reaction_Time, probs=c(.25, .75), na.rm = FALSE)
 iqr <- IQR(data_cwt_agregated$Reaction_Time)
 eliminated_rt<- subset(data_cwt_agregated, data_cwt_agregated$Reaction_Time > (Q[1] - 1.5*iqr) & data_cwt_agregated$Reaction_Time < (Q[2]+1.5*iqr))
-ancova_rt <- aov_car(Reaction_Time ~ Cue_congruency*Valence*SIAS_center + Error(record_id/Cue_congruency*Valence), data=eliminated_rt, factorize = FALSE)
+ancova_rt <- aov_car(Reaction_Time ~ Trial_type*Valence*SIAS_center + Error(record_id/Trial_type*Valence), data=eliminated_rt, factorize = FALSE)
 get_anova_table(ancova_rt, correction = c("auto", "GG", "HF", "none"))
 
 #checking normality - great
 ggqqplot(data_cwt_agregated, "Reaction_Time", ggtheme = theme_minimal(base_size = 14, base_family = "Times New Roman"), color = '#1F78B4') +
-  facet_grid(Cue_congruency ~ Valence) 
+  facet_grid(Trial_type ~ Valence) 
 
 #No perfect multicollinearity
-temp <- dplyr::select(data_cwt_agregated, Accuracy, Cue_congruency, Valence, SIAS_center, record_id)
-temp$Cue_congruency <- as.numeric(temp$Cue_congruency)
+temp <- dplyr::select(data_cwt_agregated, Accuracy, Trial_type, Valence, SIAS_center, record_id)
+temp$Trial_type <- as.numeric(temp$Trial_type)
 temp$Valence <- as.numeric(temp$Valence)
 temp$record_id <- as.numeric(temp$record_id)
 cor(temp, method = "spearman")
 
 #homogenity of variance in residuals - we see no pattern, which suggests it's good
 plot(scale(ancova_rt_cwt$aov$record_id$residuals), ylab = 'Subject ID residuals (scaled)', xlab = 'Index for Reaction Time')
-plot(scale(ancova_rt_cwt$aov$`record_id:Cue_congruency`$residuals), ylab = 'Subject ID : Cue Congruency residuals (scaled)', xlab = 'Index for Reaction Time')
+plot(scale(ancova_rt_cwt$aov$`record_id:Trial_type`$residuals), ylab = 'Subject ID : Trial Type residuals (scaled)', xlab = 'Index for Reaction Time')
 plot(scale(ancova_rt_cwt$aov$`record_id:Valence`$residuals), ylab = 'Subject ID : Valence residuals (scaled)', xlab = 'Index for Reaction Time')
-plot(scale(ancova_rt_cwt$aov$`record_id:Cue_congruency:Valence`$residuals), ylab = 'Cue Congruency * Valence * Subject ID residuals (scaled)', xlab = 'Index for Reaction Time')
+plot(scale(ancova_rt_cwt$aov$`record_id:Trial_type:Valence`$residuals), ylab = 'Trial Type : Valence : Subject ID residuals (scaled)', xlab = 'Index for Reaction Time')
 
 #residuals are close to 0
 mean(ancova_rt_cwt$aov$record_id$residuals)
-mean(ancova_rt_cwt$aov$`record_id:Cue_congruency`$residuals)
+mean(ancova_rt_cwt$aov$`record_id:Trial_type`$residuals)
 mean(ancova_rt_cwt$aov$`record_id:Valence`$residuals)
-mean(ancova_rt_cwt$aov$`record_id:Cue_congruency:Valence`$residuals)
-ancova_resid <- ancova_rt_cwt$aov$record_id$residuals + ancova_rt_cwt$aov$`record_id:Cue_congruency`$residuals
+mean(ancova_rt_cwt$aov$`record_id:Trial_type:Valence`$residuals)
+ancova_resid <- ancova_rt_cwt$aov$record_id$residuals + ancova_rt_cwt$aov$`record_id:Trial_type`$residuals
 
 #variability within predictor is positive
 var(data_cwt_agregated$SIAS_center) 
@@ -131,19 +131,19 @@ var(data_cwt_agregated$SIAS_center)
 #normality of residuals
 pp_1 <-ggdensity(scale(ancova_rt_cwt$aov$record_id$residuals), color = '#1F78B4') + labs( y = "Density", x = 'Standardized residuals for Subject ID') +
   theme_minimal(base_size = 12, base_family = "Times New Roman")
-pp_2 <- ggdensity(scale(ancova_rt_cwt$aov$`record_id:Cue_congruency`$residuals), color = '#1F78B4') + labs( y = "Density", x = 'Standardized residuals for Subject ID : Cue Accuracy') +
+pp_2 <- ggdensity(scale(ancova_rt_cwt$aov$`record_id:Trial_type`$residuals), color = '#1F78B4') + labs( y = "Density", x = 'Standardized residuals for Subject ID : Trial Type') +
   theme_minimal(base_size = 12, base_family = "Times New Roman")
 pp_3 <- ggdensity(scale(ancova_rt_cwt$aov$`record_id:Valence`$residuals), color = '#1F78B4') + labs( y = "Density", x = 'Standardized residuals for Subject ID : Valence') +
   theme_minimal(base_size = 12, base_family = "Times New Roman")
-pp_4 <- ggdensity(scale(ancova_rt_cwt$aov$`record_id:Cue_congruency:Valence`$residuals), color = '#1F78B4') + labs( y = "Density", x = 'Standardized residuals for Subject ID : Cue Accuracy : Valence') +
+pp_4 <- ggdensity(scale(ancova_rt_cwt$aov$`record_id:Trial_type:Valence`$residuals), color = '#1F78B4') + labs( y = "Density", x = 'Standardized residuals for Subject ID : Trial Type : Valence') +
   theme_minimal(base_size = 12, base_family = "Times New Roman")
 grid.arrange(pp_1, pp_2, pp_3, pp_4, ncol = 2)
 
 #covariate and residuals are not correlated
 t.test(ancova_rt_cwt$aov$record_id$residuals, data_cwt_agregated$SIAS_center)
-t.test(ancova_rt_cwt$aov$`record_id:Cue_congruency`$residuals, data_cwt_agregated$SIAS_center)
+t.test(ancova_rt_cwt$aov$`record_id:Trial_type`$residuals, data_cwt_agregated$SIAS_center)
 t.test(ancova_rt_cwt$aov$`record_id:Valence`$residuals, data_cwt_agregated$SIAS_center)
-t.test(ancova_rt_cwt$aov$`record_id:Cue_congruency:Valence`$residuals, data_cwt_agregated$SIAS_center)
+t.test(ancova_rt_cwt$aov$`record_id:Trial_type:Valence`$residuals, data_cwt_agregated$SIAS_center)
 
 
 
@@ -151,7 +151,7 @@ t.test(ancova_rt_cwt$aov$`record_id:Cue_congruency:Valence`$residuals, data_cwt_
 #check linearity
 ggscatter(
   data_cwt_full, x = "SIAS_scale", y = "Accuracy",
-  facet.by  = c("Cue_congruency", "Valence"), 
+  facet.by  = c("Trial_type", "Valence"), 
   short.panel.labs = FALSE) +
   stat_smooth(method = "loess", span = 0.9, color = '#A6CFE3')+
   ylab("Accuracy")+
@@ -160,8 +160,8 @@ ggscatter(
   theme_minimal(base_size = 14, base_family = "Times New Roman")
 
 #No perfect multicollinearity - values are below 2
-temp <- select(data_cwt_full, Accuracy, Cue_congruency, Valence, SIAS_scale, record_id)
-temp$Cue_congruency <- as.numeric(temp$Cue_congruency)
+temp <- select(data_cwt_full, Accuracy, Trial_type, Valence, SIAS_scale, record_id)
+temp$Trial_type <- as.numeric(temp$Trial_type)
 temp$Valence <- as.numeric(temp$Valence)
 temp$record_id <- as.numeric(temp$record_id)
 cor(temp, method = "spearman")
@@ -185,21 +185,8 @@ binnedplot(predict(m7), resid(Acc_glmer))
 Acc_glmer_mixed <- glmer(Accuracy ~ 1 + (1+Valence|record_id), data=data_cwt_full, family = 'binomial')
 anova(m7, Acc_glmer_mixed)
 
-#
-ggplot(data_cwt_full, aes(Cue_congruency, Accuracy)) + geom_count() + theme_minimal(base_size = 14, base_family = "Times New Roman")+ facet_wrap(~Valence) + xlab('Cue Congruency')
-
-
-
-
-
-
-
-car:::summary.boot(m7_boot)
-#m7_boot<-bootMer(x=m7,FUN=,nsim=1000, use.u = FALSE, type="parametric")
-
-
-#Bootstrapped CI for the intercept
-boot.ci(m7_boot,type="perc",index=1)
+#check the data is binomially distributed
+ggplot(data_cwt_full, aes(Trial_type, Accuracy)) + geom_count() + theme_minimal(base_size = 14, base_family = "Times New Roman")+ facet_wrap(~Valence) + xlab('Trial Type')
 
 
 
