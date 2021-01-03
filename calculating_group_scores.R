@@ -26,7 +26,7 @@ sd(data_cwt_agregated_happy$Confidence)
 
 #calculate group means
 data_cwt_agregated_pred <- data_cwt_agregated %>% 
-  filter(Cue_accuracy == "Predictive")
+  filter(Trial_type == "Predictive")
 #reaction time
 mean(data_cwt_agregated_pred$Reaction_Time)
 sd(data_cwt_agregated_pred$Reaction_Time)
@@ -38,7 +38,7 @@ mean(data_cwt_agregated_pred$Confidence)
 sd(data_cwt_agregated_pred$Confidence)
 
 data_cwt_agregated_non_pred <- data_cwt_agregated %>% 
-  filter(Cue_accuracy == "Non-predictive")
+  filter(Trial_type == "Non-predictive")
 #reaction time
 mean(data_cwt_agregated_non_pred$Reaction_Time)
 sd(data_cwt_agregated_non_pred$Reaction_Time)
@@ -50,7 +50,7 @@ mean(data_cwt_agregated_non_pred$Confidence)
 sd(data_cwt_agregated_non_pred$Confidence)
 
 data_cwt_agregated_anti_pred <- data_cwt_agregated %>% 
-  filter(Cue_accuracy == "Anti-Predictive")
+  filter(Trial_type == "Anti-Predictive")
 #reaction time
 mean(data_cwt_agregated_anti_pred$Reaction_Time)
 sd(data_cwt_agregated_anti_pred$Reaction_Time)
@@ -100,9 +100,9 @@ sd(data_cwt_agregated$SIAS)
 
 #### statistics table
 sum_full <- select(data_cwt_full, record_id, Age, Gender, Accuracy, SIAS, SIAS_scale)
-sum_full$predictive <- ifelse(data_cwt_full$Cue_accuracy == "Predictive", 1, 0)
-sum_full$non_predictive <- ifelse(data_cwt_full$Cue_accuracy == "Non-predictive", 1, 0)
-sum_full$anti_predictive <- ifelse(data_cwt_full$Cue_accuracy == "Anti-Predictive", 1, 0)
+sum_full$predictive <- ifelse(data_cwt_full$Trial_type == "Predictive", 1, 0)
+sum_full$non_predictive <- ifelse(data_cwt_full$Trial_type == "Non-predictive", 1, 0)
+sum_full$anti_predictive <- ifelse(data_cwt_full$Trial_type == "Anti-Predictive", 1, 0)
 sum_full$angry <- ifelse(data_cwt_full$Valence == "Angry", 1, 0)
 sum_full$female <- ifelse(data_cwt_full$Gender == "Female", 1, 0)
 sum_full$male <- ifelse(data_cwt_full$Gender == "Male", 1, 0)
@@ -114,9 +114,9 @@ sum_thresh <- select(data_sias, record_id, Age, Gender, SIAS, Threshold)
 describe(sum_thresh)
 
 sum_agr <- select(data_cwt_agregated, record_id, Age, Gender, Accuracy, SIAS_center, Reaction_Time)
-sum_agr$predictive <- ifelse(data_cwt_agregated$Cue_accuracy == "Predictive", 1, 0)
-sum_agr$non_predictive <- ifelse(data_cwt_agregated$Cue_accuracy == "Non-predictive", 1, 0)
-sum_agr$anti_predictive <- ifelse(data_cwt_agregated$Cue_accuracy == "Anti-Predictive", 1, 0)
+sum_agr$predictive <- ifelse(data_cwt_agregated$Trial_type == "Predictive", 1, 0)
+sum_agr$non_predictive <- ifelse(data_cwt_agregated$Trial_type == "Non-predictive", 1, 0)
+sum_agr$anti_predictive <- ifelse(data_cwt_agregated$Trial_type == "Anti-Predictive", 1, 0)
 sum_agr$angry <- ifelse(data_cwt_agregated$Valence == "Angry", 1, 0)
 sum_agr$female <- ifelse(data_cwt_agregated$Gender == "Female", 1, 0)
 sum_agr$male <- ifelse(data_cwt_agregated$Gender == "Male", 1, 0)

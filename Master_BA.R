@@ -38,7 +38,7 @@ data_cwt_full <- merge(data_cwt_full, data_weibull_clean_id)
 
 #create aggregated data
 data_cwt_agregated <- data_cwt_full %>%
-  group_by(Cue_congruency, Valence, record_id) %>%
+  group_by(Trial_type, Valence, record_id) %>%
   dplyr::summarize(Accuracy = mean(Accuracy), Reaction_Time = mean(Reaction_Time), Confidence = mean(Confidence))
 data_cwt_agregated <- merge(data_cwt_agregated, data_sias, by = "record_id")
 data_cwt_agregated <- filter(data_cwt_agregated, Accuracy > 0)
@@ -68,7 +68,7 @@ p <- ggplot(data_sias, aes(SIAS, Threshold)) + geom_point(color = '#1F78B4')  +
   geom_smooth(method = 'lm', color = '#1F78B4')
 p1 <- ggExtra::ggMarginal(p, type = "histogram", fill = '#A6CFE3', color = '#1F78B4')
 
-#plot the interaction between Cue_congruency and stimulus precision for rt, accuracy and confidence
+#plot the interaction between Trial_type and stimulus precision for rt, accuracy and confidence
 p2 <- interaction_plot_rt(data_cwt_agregated)
 p3 <- interaction_plot_acc(data_cwt_full)
 
@@ -108,15 +108,17 @@ plot <- ggplot(aes(x=Valence, y=Accuracy, color = record_id), data=data_cwt_full
   coord_cartesian(ylim=c(0,1)) + theme_minimal(base_size = 14, base_family = "Times New Roman") + 
   theme(legend.position = "none") + 
   ylab("Accuracy")
-plot1 <- ggplot(aes(x=Cue_congruency, y=Accuracy, color = record_id), data=data_cwt_full) + 
+plot1 <- ggplot(aes(x=Trial_type, y=Accuracy, color = record_id), data=data_cwt_full) + 
   stat_summary(fun.data="mean_cl_boot", geom='line', aes(group=record_id)) + 
   coord_cartesian(ylim=c(0,1)) + 
   theme_minimal(base_size = 14, base_family = "Times New Roman") +
   theme(legend.position = "none") +
   ylab("Accuracy") +
-  xlab("Cue Congruency")
+  xlab("Trial Type")
 grid.arrange(plot, plot1, ncol = 2)
 
+### plot celling effect
+interaction_plot_acc_stim(data_cwt_full)
 ########################
 
 ### modeling
@@ -131,24 +133,24 @@ describe(data_sias)
 #were previously anovas, but as results remained the same when running ancovas and the estimates did not change, they were converted to ancovas
 
 ##RT ANCOVA
-ancova_rt_cwt <- aov_car(Reaction_Time ~ Cue_congruency*Valence*SIAS_center + Error(record_id/Cue_congruency*Valence), data=data_cwt_agregated, factorize = FALSE)
+ancova_rt_cwt <- aov_car(Reaction_Time ~ Trial_type*Valence*SIAS_center + Error(record_id/Trial_type*Valence), data=data_cwt_agregated, factorize = FALSE)
 get_anova_table(ancova_rt_cwt, correction = c("auto", "GG", "HF", "none"))
 
 #get p-values for post hoc tests
 pairs(emmeans(ancova_rt_cwt, ~Valence), adjust="bon")
-pairs(emmeans(ancova_rt_cwt, ~Cue_congruency), adjust="bon")
+pairs(emmeans(ancova_rt_cwt, ~Trial_type), adjust="bon")
 
 ########### glmer ACC
-data_cwt_full$Cue_congruency <- data_cwt_full$Cue_congruency
+data_cwt_full$Trial_type <- data_cwt_full$Trial_type
 #make multi level model
 
-m1 <- glmer(Accuracy ~ Cue_congruency * Valence * SIAS_scale + (1+Cue_congruency+Valence|record_id), data=data_cwt_full, family = 'binomial', control=glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5)))
-m2 <- glmer(Accuracy ~ Cue_congruency * Valence * SIAS_scale + (1+Valence|record_id), data=data_cwt_full, family = 'binomial', control=glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5)))
-m3 <- glmer(Accuracy ~ Cue_congruency * Valence * SIAS_scale + (1|record_id), data=data_cwt_full, family = 'binomial')
-m4 <- glmer(Accuracy ~ Cue_congruency * Valence + SIAS_scale + (1+Valence|record_id), data=data_cwt_full, family = 'binomial', control=glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5)))
-m5 <- glmer(Accuracy ~ Cue_congruency + Valence * SIAS_scale + (1+Valence|record_id), data=data_cwt_full, family = 'binomial', control=glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5)))
-m6 <- glmer(Accuracy ~ Cue_congruency * SIAS_scale + Valence  + (1+Valence|record_id), data=data_cwt_full, family = 'binomial', control=glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5)))
-m7 <- glmer(Accuracy ~ Cue_congruency + Valence + SIAS_scale + (1+Valence|record_id), data=data_cwt_full, family = 'binomial')
+m1 <- glmer(Accuracy ~ Trial_type * Valence * SIAS_scale + (1+Trial_type+Valence|record_id), data=data_cwt_full, family = 'binomial', control=glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5)))
+m2 <- glmer(Accuracy ~ Trial_type * Valence * SIAS_scale + (1+Valence|record_id), data=data_cwt_full, family = 'binomial', control=glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5)))
+m3 <- glmer(Accuracy ~ Trial_type * Valence * SIAS_scale + (1|record_id), data=data_cwt_full, family = 'binomial')
+m4 <- glmer(Accuracy ~ Trial_type * Valence + SIAS_scale + (1+Valence|record_id), data=data_cwt_full, family = 'binomial', control=glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5)))
+m5 <- glmer(Accuracy ~ Trial_type + Valence * SIAS_scale + (1+Valence|record_id), data=data_cwt_full, family = 'binomial', control=glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5)))
+m6 <- glmer(Accuracy ~ Trial_type * SIAS_scale + Valence  + (1+Valence|record_id), data=data_cwt_full, family = 'binomial', control=glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5)))
+m7 <- glmer(Accuracy ~ Trial_type + Valence + SIAS_scale + (1+Valence|record_id), data=data_cwt_full, family = 'binomial')
 
 anova(m1, m2) #m2 wins
 anova(m2, m3) # m2 wins
@@ -185,7 +187,7 @@ inv.logit(0.08456+0.03828)
 ############# bootstrap
 #With 2000 bootstrapped replicates
 FUN <- function(fit) {
-  fit <- glmer(Accuracy ~ Cue_congruency + Valence + SIAS_scale + (1+Valence|record_id), data=data_cwt_full, family = 'binomial')
+  fit <- glmer(Accuracy ~ Trial_type + Valence + SIAS_scale + (1+Valence|record_id), data=data_cwt_full, family = 'binomial')
   return(fixef(fit))
 }
 m7_boot_2000_real <- bootMer(m7, FUN, nsim = 2000, .progress = "txt")

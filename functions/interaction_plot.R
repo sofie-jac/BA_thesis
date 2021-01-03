@@ -60,15 +60,15 @@ summarySEwithin <- function(data=NULL, measurevar, betweenvars=NULL, withinvars=
 
 interaction_plot_rt <- function(data) {
   #normalize RT and confidence intervals based on standards for repeated measures
-  data_sum_rt <- summarySEwithin(data=data, measurevar="Reaction_Time", betweenvars=NULL, withinvars=c("Cue_congruency", "Valence"), idvar="record_id", na.rm=TRUE, conf.interval=.95, .drop=TRUE)
+  data_sum_rt <- summarySEwithin(data=data, measurevar="Reaction_Time", betweenvars=NULL, withinvars=c("Trial_type", "Valence"), idvar="record_id", na.rm=TRUE, conf.interval=.95, .drop=TRUE)
 
   #RT plot
-  p1 <- ggplot(data_sum_rt, aes(x=Cue_congruency, y=Reaction_Time, group = Valence, color=Valence)) + 
+  p1 <- ggplot(data_sum_rt, aes(x=Trial_type, y=Reaction_Time, group = Valence, color=Valence)) + 
     geom_errorbar(aes(ymin=Reaction_Time-ci, ymax=Reaction_Time+ci), width=.1) +
     geom_line() + geom_point()+
     scale_color_brewer(palette="Paired") +
     theme_minimal(base_size = 14, base_family = "Times New Roman") +
-    xlab('Cue Congruency') +
+    xlab('Trial Type') +
     ylab('Reaction Time') +
     labs(color='Valence') 
 
@@ -78,18 +78,40 @@ interaction_plot_rt <- function(data) {
 interaction_plot_acc <- function(data) {
   
   #normalize RT and confidence intervals based on standards for repeated measures
-  data_sum_acc <- summarySEwithin(data=data, measurevar="Accuracy", betweenvars=NULL, withinvars=c("Cue_congruency", "Valence"), idvar="record_id", na.rm=TRUE, conf.interval=.95, .drop=TRUE)
+  data_sum_acc <- summarySEwithin(data=data, measurevar="Accuracy", betweenvars=NULL, withinvars=c("Trial_type", "Valence"), idvar="record_id", na.rm=TRUE, conf.interval=.95, .drop=TRUE)
   
   #Acc plot
-  p2 <- ggplot(data_sum_acc, aes(x=Cue_congruency, y=Accuracy, group = Valence, color=Valence)) + 
+  p2 <- ggplot(data_sum_acc, aes(x=Trial_type, y=Accuracy, group = Valence, color=Valence)) + 
     geom_errorbar(aes(ymin=Accuracy-ci, ymax=Accuracy+ci), width=.1) +
     geom_line() + geom_point()+
     scale_color_brewer(palette="Paired") +
     theme_minimal(base_size = 14, base_family = "Times New Roman") +
-    xlab('Cue Congruency') +
+    xlab('Trial Type') +
     ylab('Accuracy') +
     labs(color='Valence') 
   p2
   
   return(p2)
+}
+
+interaction_plot_acc_stim <- function(data) {
+  # data <- data %>%
+  #   group_by(Cue_accuracy, record_id, Ambiguity) %>%
+  #   dplyr::summarize(Accuracy = mean(Accuracy), Reaction_Time = mean(Reaction_Time), Confidence = mean(Confidence))
+  # data
+  #normalize RT and confidence intervals based on standards for repeated measures
+  data_sum_acc <- summarySEwithin(data=data, measurevar="Accuracy", betweenvars=NULL, withinvars=c("Trial_type", "Ambiguity"), idvar="record_id", na.rm=TRUE, conf.interval=.95, .drop=TRUE)
+  
+  #Acc plot
+  p3 <- ggplot(data_sum_acc, aes(x=Trial_type, y=Accuracy, group = Ambiguity, color=Ambiguity)) + 
+    geom_errorbar(aes(ymin=Accuracy-ci, ymax=Accuracy+ci), width=.1) +
+    geom_line() + geom_point()+
+    scale_color_brewer(palette="Paired") +
+    theme_minimal(base_size = 14, base_family = "Times New Roman") +
+    xlab('Trial Type') +
+    ylab('Accuracy') +
+    labs(color='Ambiguity')
+  p3
+  
+  return(p3)
 }
